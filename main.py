@@ -75,8 +75,8 @@ class Drone(object):
         return (((read_bytes[0] << 8) | read_bytes[1]) / 4096) * 360
 
     def read_mpu(self):
-        accel_x, accel_y, accel_z = self.mpu.get_accel_data().values()
-        rot_x, rot_y, rot_z = self.mpu.get_gyro_data().values()
+        accel_x, accel_z, accel_y = self.mpu.get_accel_data().values()
+        rot_x, rot_z, rot_y = self.mpu.get_gyro_data().values()
         return (accel_x, accel_y, accel_z,
                 rot_x - self.MPU_X_ROTATION_OFFSET,
                 rot_y - self.MPU_Y_ROTATION_OFFSET,
