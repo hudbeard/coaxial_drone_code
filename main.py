@@ -25,9 +25,9 @@ class Drone(object):
         self.ESC_MAX_VALUE = 2000
         self.ESC_MIN_VALUE = 1000
 
-        self.MPU_X_ROTATION_OFFSET = 0
-        self.MPU_Y_ROTATION_OFFSET = 0
-        self.MPU_Z_ROTATION_OFFSET = 0
+        self.MPU_X_ROTATION_OFFSET = 0.5
+        self.MPU_Y_ROTATION_OFFSET = 7
+        self.MPU_Z_ROTATION_OFFSET = 1.5
 
         self.configure_escs()
 
@@ -78,9 +78,9 @@ class Drone(object):
         accel_x, accel_z, accel_y = self.mpu.get_accel_data().values()
         rot_x, rot_z, rot_y = self.mpu.get_gyro_data().values()
         return (accel_x, accel_y, accel_z,
-                rot_x - self.MPU_X_ROTATION_OFFSET,
-                rot_y - self.MPU_Y_ROTATION_OFFSET,
-                rot_z - self.MPU_Z_ROTATION_OFFSET)
+                round(rot_x - self.MPU_X_ROTATION_OFFSET, ndigits=2),
+                round(rot_y - self.MPU_Y_ROTATION_OFFSET, ndigits=2),
+                round(rot_z - self.MPU_Z_ROTATION_OFFSET, ndigits=2))
 
     def display_stats(self):
         font_path = str(Path(__file__).resolve().parent.joinpath('fonts', 'SegoeIcons.ttf'))
