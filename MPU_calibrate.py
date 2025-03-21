@@ -12,15 +12,7 @@ class Drone(object):
 
     def calibrate(self):
         while True:
-            print(self.read_mpu()[3:])
-
-    def read_mpu(self):
-        accel_x, accel_y, accel_z = self.mpu.get_accel_data().values()
-        rot_x, rot_y, rot_z = self.mpu.get_gyro_data().values()
-        return (accel_x, accel_y, accel_z,
-                rot_x - self.MPU_X_ROTATION_OFFSET,
-                rot_y - self.MPU_Y_ROTATION_OFFSET,
-                rot_z - self.MPU_Z_ROTATION_OFFSET)
+            print(self.mpu.get_gyro_data().values())
 
 
 if __name__ == "__main__":
