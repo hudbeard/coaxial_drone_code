@@ -11,6 +11,7 @@ class Updator(object):
         if not os.path.exists(os.path.join(self.LOCAL_DIR, ".git")):
             subprocess.run(["git", "clone", self.REPO_URL, self.LOCAL_DIR], check=True)
         else:
+            subprocess.run(["git", "-C", self.LOCAL_DIR, "reset", "--hard"], check=True)
             subprocess.run(["git", "-C", self.LOCAL_DIR, "pull"], check=True)
 
     @staticmethod
