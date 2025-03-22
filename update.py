@@ -18,7 +18,7 @@ class Updator(object):
     def run_updated_code():
         from main import Drone
         drone = Drone()
-        drone.run()
+        drone.hover()
 
 
 if __name__ == "__main__":
