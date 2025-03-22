@@ -122,15 +122,14 @@ class Drone(object):
         normalized_thrust = (thrust - 1000) / 1000
         return normalized_roll, normalized_pitch, normalized_yaw, normalized_thrust
 
-    def stabilize(self, roll, pitch, thrust_value):
+    def stabilize(self, roll, pitch):
         rotation_rate = roll ** 2 + pitch ** 2 / self.ROTATION_SCALE_FACTOR
         if pitch != 0:
             rotation_direction = math.degrees(math.atan(roll / pitch))
         else:
             rotation_direction = 0
         direction_sine = (math.sin(math.radians(self.read_motor_angle() - rotation_direction)) + 1.5) * rotation_rate / 2
-        direction_power = direction_sine * thrust_value
-        return direction_power
+        return direction_sine
 
     def convert_to_esc(self, val: float, _type="0:1"):
         if _type == "-1:1":
@@ -159,7 +158,7 @@ class Drone(object):
                 roll, pitch, yaw, thrust = self.get_controls()
                 current_pitch, current_roll = self.compute_rotation(*self.read_mpu()[:3])
                 self.thrust_motor_power = self.convert_to_esc(thrust)
-                self.direction_motor_power = self.stabilize(current_roll, current_pitch, thrust)
+                self.direction_motor_power = self.convert_to_esc(self.stabilize(current_roll, current_pitch), _type="-1:1")
                 self.send_to_motors()
         except KeyboardInterrupt:
             self.thrust_motor_power = 0
