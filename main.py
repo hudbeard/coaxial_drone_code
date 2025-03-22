@@ -128,12 +128,13 @@ class Drone(object):
             rotation_direction = math.degrees(math.atan(roll / pitch))
         else:
             rotation_direction = 0
-        direction_sine = (math.sin(math.radians(self.read_motor_angle() - rotation_direction)) + 1.5) * rotation_rate / 2
+        direction_sine = (math.sin(math.radians(self.read_motor_angle() - rotation_direction)) + 1.5) * rotation_rate
         return direction_sine
 
     def convert_to_esc(self, val: float, _type="0:1"):
         if _type == "-1:1":
-            return (self.ESC_MAX_VALUE - self.ESC_MIN_VALUE) * val
+            esc = (self.ESC_MAX_VALUE - self.ESC_MIN_VALUE) * val
+            return 500 if 0 < esc < 500 else esc
         else:
             return (self.ESC_MAX_VALUE - self.ESC_MIN_VALUE) * val + self.ESC_MIN_VALUE
 
