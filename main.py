@@ -124,7 +124,10 @@ class Drone(object):
 
     def stabilize(self, roll, pitch, thrust_value):
         rotation_rate = roll ** 2 + pitch ** 2 / self.ROTATION_SCALE_FACTOR
-        rotation_direction = math.degrees(math.atan(roll / pitch))
+        if pitch != 0:
+            rotation_direction = math.degrees(math.atan(roll / pitch))
+        else:
+            rotation_direction = 0
         direction_sine = (math.sin(math.radians(self.read_motor_angle() - rotation_direction)) + 1.5) * rotation_rate / 2
         direction_power = direction_sine * thrust_value
         return direction_power
