@@ -25,10 +25,10 @@ class Drone(object):
         self.ESC_MAX_VALUE = 2000
         self.ESC_MIN_VALUE = 1000
 
-        self.MPU_X_ROTATION_OFFSET = 0.5
-        self.MPU_Y_ROTATION_OFFSET = 6.3
-        self.MPU_Z_ROTATION_OFFSET = 1.5
-        self.ROTATION_SCALE_FACTOR = 1000
+        self.MPU_X_ROTATION_OFFSET = 0
+        self.MPU_Y_ROTATION_OFFSET = 0
+        self.MPU_Z_ROTATION_OFFSET = 0
+        self.ROTATION_SCALE_FACTOR = 45
 
         self.configure_escs()
 
@@ -83,6 +83,14 @@ class Drone(object):
                 round(rot_y - self.MPU_Y_ROTATION_OFFSET, ndigits=2),
                 round(rot_z - self.MPU_Z_ROTATION_OFFSET, ndigits=2))
 
+    @staticmethod
+    def compute_rotation(ax, ay, az):
+        # Convert accelerometer values to angles (in degrees)
+        pitch = math.atan2(ay, az) * 180 / math.pi
+        roll = math.atan2(ax, az) * 180 / math.pi
+
+        return pitch, roll
+
     def display_stats(self):
         font_path = str(Path(__file__).resolve().parent.joinpath('fonts', 'SegoeIcons.ttf'))
         font2_path = str(Path(__file__).resolve().parent.joinpath('fonts', 'C&C Red Alert [INET].ttf'))
@@ -114,11 +122,12 @@ class Drone(object):
         normalized_thrust = (thrust - 1000) / 1000
         return normalized_roll, normalized_pitch, normalized_yaw, normalized_thrust
 
-    def stabilize(self, roll_rate, pitch_rate, yaw_rate):
-        rotation_rate = roll_rate ** 2 + pitch_rate ** 2 / self.ROTATION_SCALE_FACTOR
-        rotation_rate = 1000 if rotation_rate > 1000 else rotation_rate
-        rotation_direction = math.degrees(math.atan(roll_rate / pitch_rate))
-        direction_power = (math.sin(math.radians(self.read_motor_angle() - rotation_direction)) + 1) * (rotation_rate / 2)
+    def stabilize(self, roll, pitch, thrust_value):
+        rotation_rate = roll ** 2 + pitch ** 2 / self.ROTATION_SCALE_FACTOR
+        rotation_direction = math.degrees(math.atan(roll / pitch))
+        direction_sine = (math.sin(math.radians(self.read_motor_angle() - rotation_direction)) + 1.5) * rotation_rate / 2
+        direction_power = direction_sine * thrust_value
+        return direction_power
 
     def convert_to_esc(self, val: float, _type="0:1"):
         if _type == "-1:1":
@@ -133,6 +142,21 @@ class Drone(object):
                 roll, pitch, yaw, thrust = self.get_controls()
                 self.thrust_motor_power = self.convert_to_esc(thrust) + self.convert_to_esc(roll, _type="-1:1") * 0.5
                 self.direction_motor_power = self.convert_to_esc(thrust) - self.convert_to_esc(roll, _type="-1:1") * 0.5
+                self.send_to_motors()
+        except KeyboardInterrupt:
+            self.thrust_motor_power = 0
+            self.direction_motor_power = 0
+            self.send_to_motors()
+            self.pi.stop()
+
+    def hover(self):
+        try:
+            self.configure_escs()
+            while True:
+                roll, pitch, yaw, thrust = self.get_controls()
+                current_pitch, current_roll = self.compute_rotation(*self.read_mpu()[:3])
+                self.thrust_motor_power = self.convert_to_esc(thrust)
+                self.direction_motor_power = self.stabilize(current_roll, current_pitch, thrust)
                 self.send_to_motors()
         except KeyboardInterrupt:
             self.thrust_motor_power = 0
@@ -185,4 +209,4 @@ class IBus:
 
 if __name__ == "__main__":
     drone = Drone()
-    drone.run()
+    drone.hover()
