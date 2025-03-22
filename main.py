@@ -26,8 +26,9 @@ class Drone(object):
         self.ESC_MIN_VALUE = 1000
 
         self.MPU_X_ROTATION_OFFSET = 0.5
-        self.MPU_Y_ROTATION_OFFSET = 7
+        self.MPU_Y_ROTATION_OFFSET = 6.3
         self.MPU_Z_ROTATION_OFFSET = 1.5
+        self.ROTATION_SCALE_FACTOR = 1000
 
         self.configure_escs()
 
@@ -113,7 +114,11 @@ class Drone(object):
         normalized_thrust = (thrust - 1000) / 1000
         return normalized_roll, normalized_pitch, normalized_yaw, normalized_thrust
 
-    # def convert_roll_pitch_to_motor_values(self, roll, pitch):
+    def stabilize(self, roll_rate, pitch_rate, yaw_rate):
+        rotation_rate = roll_rate ** 2 + pitch_rate ** 2 / self.ROTATION_SCALE_FACTOR
+        rotation_rate = 1000 if rotation_rate > 1000 else rotation_rate
+        rotation_direction = math.degrees(math.atan(roll_rate / pitch_rate))
+        direction_power = (math.sin(math.radians(self.read_motor_angle() - rotation_direction)) + 1) * (rotation_rate / 2)
 
     def convert_to_esc(self, val: float, _type="0:1"):
         if _type == "-1:1":
